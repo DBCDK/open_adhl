@@ -78,7 +78,6 @@ function open_adhl_adhlRequest($pid, $numRecords) {
  */
 function open_adhl_request($method, $params) {
   $params['action'] = $method . 'Request';
-  debug($params);
   $client = new ting_client_class();
   $response = $client->do_request('adhl', $params);
   return open_adhl_parse_response($response, $method . 'Response');
