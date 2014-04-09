@@ -11,14 +11,21 @@
  * @param $form_state
  */
 function open_adhl_form_ting_client_admin_webservices_settings_alter(&$form, &$form_state) {
-  $form['webservices']['ting_recommendation_url'] = array(
+  $form['adhl'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'MoreInfo settings',
+    '#description' => t('The ADHL service is used to get recommendations based on other loans'),
+    '#collapsible' => TRUE,
+    '#tree' => FALSE,
+  );
+  $form['adhl']['ting_recommendation_url'] = array(
     '#type' => 'textfield',
     '#title' => t('Recommendation service URL'),
     '#description' => t('URL to Open ADHL webservice (Andre der har lånt...) , e.g. http://openadhl.addi.dk/3.0/'),
     '#required' => TRUE,
     '#default_value' => variable_get('ting_recommendation_url', ''),
   );
-  $form['webservices']['ting_recommendation_xsd'] = array(
+  $form['adhl']['ting_recommendation_xsd'] = array(
     '#type' => 'textfield',
     '#title' => t('Recommendation service XSD URL'),
     '#description' => t('URL to XSD to Open ADHL webservice (Andre der har lånt...) , e.g. http://openadhl.addi.dk/3.0/adhl.xsd'),
