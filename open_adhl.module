@@ -13,7 +13,7 @@
 function open_adhl_form_ting_client_admin_webservices_settings_alter(&$form, &$form_state) {
   $form['adhl'] = array(
     '#type' => 'fieldset',
-    '#title' => 'MoreInfo settings',
+    '#title' => 'ADHL settings',
     '#description' => t('The ADHL service is used to get recommendations based on other loans'),
     '#collapsible' => TRUE,
     '#tree' => FALSE,
