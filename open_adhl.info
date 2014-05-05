@@ -1,0 +1,8 @@
+name = OpenADHL Client
+description = Provides information to the user about what other users have borrowed
+core = 7.x
+version = 7.x-0.1
+package = Bibliotek.dk
+
+files[] = open_adhl.request.inc
+files[] = test/open_adhl.test

@@ -1,0 +1,109 @@
+<?php
+
+/** Implements hook_formID_alter
+ *
+ * Adds settings for adhl service client
+ *
+ * @see ting_client_admin_webservices_settings
+ * in ting_client.admin.inc
+ *
+ * @param $form
+ * @param $form_state
+ */
+function open_adhl_form_ting_client_admin_webservices_settings_alter(&$form, &$form_state) {
+  $form['adhl'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'ADHL settings',
+    '#description' => t('The ADHL service is used to get recommendations based on other loans'),
+    '#collapsible' => TRUE,
+    '#tree' => FALSE,
+  );
+  $form['adhl']['ting_recommendation_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Recommendation service URL'),
+    '#description' => t('URL to Open ADHL webservice (Andre der har lånt...) , e.g. http://openadhl.addi.dk/3.0/'),
+    '#required' => TRUE,
+    '#default_value' => variable_get('ting_recommendation_url', ''),
+  );
+  $form['adhl']['ting_recommendation_xsd'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Recommendation service XSD URL'),
+    '#description' => t('URL to XSD to Open ADHL webservice (Andre der har lånt...) , e.g. http://openadhl.addi.dk/3.0/adhl.xsd'),
+    '#required' => TRUE,
+    '#default_value' => variable_get('ting_recommendation_xsd', ''),
+  );
+}
+
+/**
+ * Implements hook_ting_client_webservice (@see ting_client.module)
+ * */
+function open_adhl_ting_client_webservice() {
+  $ret = array();
+  $ret['adhl']['class'] = 'OpenAdhlRequest';
+  $ret['adhl']['url'] = 'ting_recommendation_url';
+  $ret['adhl']['xsd_url'] = 'ting_recommendation_xsd';
+  return $ret;
+}
+
+/**
+ * Execute adhl TopTenRequest
+ * @param int $numResults
+ * @return array
+ */
+function open_adhl_topTenRequest($numRecords) {
+  $param = array(
+    'numRecords' => $numRecords,
+  );
+  return open_adhl_request('topTen', $param);
+}
+
+/**
+ * Execute adhl request
+ * @param int $numResults
+ * @internal param $pid
+ * @return array
+ */
+function open_adhl_adhlRequest($pid, $numRecords) {
+  $param = array(
+    'id' => array( 'pid' => $pid),
+    'numRecords' => $numRecords,
+  );
+  return open_adhl_request('adhl', $param);
+}
+
+/** Generic request function to call adhl webservice
+ * @param $method string "adhl" || "topTen"
+ * @param $params
+ * @return array
+ */
+function open_adhl_request($method, $params) {
+  $params['action'] = $method . 'Request';
+  $client = new ting_client_class();
+  $response = $client->do_request('adhl', $params);
+  return open_adhl_parse_response($response, $method . 'Response');
+}
+
+
+/** Parse response from adhl request
+ * @param $response
+ * @return array
+ */
+function open_adhl_parse_response($response, $requestMethod) {
+  if (!isset($response->$requestMethod)) {
+    throw new Exception('No ADHL response of type: ' . $requestMethod . ' in response');
+  }
+
+  $response = $response->$requestMethod;
+
+  if (!isset($response->pid) || empty($response->pid)) {
+    return array();
+  }
+
+  $pids = array();
+
+  foreach ($response->pid as $recommendation) {
+    $pids[] = $recommendation->{'$'};
+  }
+
+  return $pids;
+}
