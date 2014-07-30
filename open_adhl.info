@@ -6,3 +6,5 @@ package = Bibliotek.dk
 
 files[] = open_adhl.request.inc
 files[] = test/open_adhl.test
+
+dependencies[] = ting_client
