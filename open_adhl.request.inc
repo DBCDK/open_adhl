@@ -70,7 +70,7 @@ class OpenAdhlRequest extends TingClientRequest Implements ITingClientRequestCac
    * @return string; name of cachebin
    **/
   public function cacheBin() {
-    return 'cache_adhl_webservice';
+    return 'cache_adhl_webservices';
   }
 
 
@@ -118,5 +118,4 @@ class OpenAdhlRequest extends TingClientRequest Implements ITingClientRequestCac
   public function processResponse(stdClass $result) {
     return $result;
   }
-
 }
