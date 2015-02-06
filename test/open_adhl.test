@@ -33,6 +33,7 @@ class OpenAdhlRequestTestCase extends DrupalUnitTestCase {
     }
 
     // Test empty response
+    $response->topTenResponse = new stdClass();
     $response->topTenResponse->pid = array();
     $result = open_adhl_parse_response($response, 'topTenResponse');
     $this->assertEqual($result, array(), 'no results');
