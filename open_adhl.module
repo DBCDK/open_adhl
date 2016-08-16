@@ -25,6 +25,8 @@ function open_adhl_form_ting_client_admin_webservices_settings_alter(&$form, &$f
     '#required' => TRUE,
     '#default_value' => variable_get('ting_recommendation_url', ''),
   );
+  // TODO ANA
+  /*
   $form['adhl']['ting_recommendation_xsd'] = array(
     '#type' => 'textfield',
     '#title' => t('Recommendation service XSD URL'),
@@ -32,16 +34,27 @@ function open_adhl_form_ting_client_admin_webservices_settings_alter(&$form, &$f
     '#required' => TRUE,
     '#default_value' => variable_get('ting_recommendation_xsd', ''),
   );
+  */
+
+  $form['adhl']['ting_recommendation_access_token'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Recommendation service access_token'),
+    '#description' => t('Access token to Open ADHL webservice (Andre der har lånt...) , e.g. http://openadhl.addi.dk/3.0/adhl.xsd'),
+    '#required' => TRUE,
+    '#default_value' => variable_get('ting_recommendation_access_token', ''),
+  );
 }
 
 /**
  * Implements hook_ting_client_webservice (@see ting_client.module)
  * */
 function open_adhl_ting_client_webservice() {
+  // TODO ANA
   $ret = array();
   $ret['adhl']['class'] = 'OpenAdhlRequest';
   $ret['adhl']['url'] = 'ting_recommendation_url';
-  $ret['adhl']['xsd_url'] = 'ting_recommendation_xsd';
+  //$ret['adhl']['xsd_url'] = 'ting_recommendation_xsd';
+  $ret['adhl']['access_token'] = 'ting_recommendation_access_token';
   return $ret;
 }
 
@@ -67,8 +80,14 @@ function open_adhl_adhlRequest($pid, $numRecords) {
   $param = array(
     'id' => array( 'pid' => $pid),
     'numRecords' => $numRecords,
+    'like' => array( 'pid' => $pid),
+    'recommender' => 'default',
   );
-  return open_adhl_request('adhl', $param);
+ // TODO ANA
+ // 'recommender' => $recommender,   //default
+ // 'like' => $like,                 //["870970-basis%3A28075480"]
+ // OLD return open_adhl_request('adhl', $param);
+  return open_adhl_curl_request('adhl', $param);
 }
 
 /** Generic request function to call adhl webservice
@@ -79,6 +98,7 @@ function open_adhl_adhlRequest($pid, $numRecords) {
 function open_adhl_request($method, $params) {
   $params['action'] = $method . 'Request';
   $client = new ting_client_class();
+  dpm($params,'$params');
   $response = $client->do_request('adhl', $params);
   return open_adhl_parse_response($response, $method . 'Response');
 }
@@ -89,6 +109,7 @@ function open_adhl_request($method, $params) {
  * @return array
  */
 function open_adhl_parse_response($response, $requestMethod) {
+
   if (!isset($response->$requestMethod)) {
     throw new Exception('No ADHL response of type: ' . $requestMethod . ' in response');
   }
@@ -104,6 +125,89 @@ function open_adhl_parse_response($response, $requestMethod) {
   foreach ($response->pid as $recommendation) {
     $pids[] = $recommendation->{'$'};
   }
+
+  return $pids;
+}
+
+/** Generic request function to call adhl webservice
+ * @param $method string "adhl" || "topTen"
+ * @param $params
+ * @return array
+ */
+function open_adhl_curl_request($method, $params) {
+
+  // make recommender url
+  $url = open_adhl_set_adhl_query($params);
+
+  // log url for debug
+  watchdog('bibdk_adhl', 'Adhlcomplete URL sent: ' . $url, array(), $severity = WATCHDOG_DEBUG);
+
+  $options['maxTime'] = 300;
+
+  // do call MicroURL
+  $url = url($url, $options);
+  $curl = new MicroCURL();
+  $response = json_decode($curl->get(array($url)));
+  $curl->close();
+
+  return open_adhl_parse_curl_response($response, 'data');
+
+}
+
+function open_adhl_set_adhl_query(array $param) {
+
+  // Get settings for adhl
+  $url = variable_get('ting_recommendation_url', '');
+  $access_token = variable_get('ting_recommendation_access_token', '');
+  $numRecords = isset($param['numRecords']) ? $param['numRecords'] : 10;
+  $recommender = isset($param['recommender']) ? $param['recommender'] : 'default';
+  $like = _open_adhl_get_request_pids($param);
+
+  // Create recommmender url
+  $url =  $url . 'access_token=' . $access_token . '&recommender=' . $recommender . '&like=' . $like . '&limit=' . $numRecords;
+
+  return $url;
+}
+
+/** Parse response from adhl curl request
+ * @param $response
+ * @param $requestMethod
+ * @return array of pids
+ */
+function open_adhl_parse_curl_response($response, $requestMethod) {
+
+  if (!isset($response->$requestMethod)) {
+    throw new Exception('No ADHL response of type: ' . $requestMethod . ' in response');
+  }
+
+  $response = $response->$requestMethod;
+
+  $pids = array();
+  foreach ($response as $recommendation) {
+    $pids[] = $recommendation->pid;
+  }
+  
+  return $pids;
+}
+
+
+/** Parse response from adhl curl request
+ * @param $response
+ * @param $requestMethod
+ * @return array of pids
+ */
+function _open_adhl_get_request_pids($param) {
+
+  $request_ids = $param['like']['pid'];
+
+  $pids = '';
+  foreach ($request_ids as $request_id) {
+    $pids = $pids . ',' . $request_id . ',';
+  }
+  // remove last ,
+  rtrim($pids, ",");
+  $pids = '[' . $pids . ']';
+  $pids = urlencode($pids);
 
   return $pids;
 }

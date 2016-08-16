@@ -14,6 +14,11 @@ class OpenAdhlRequest extends TingClientRequest Implements ITingClientRequestCac
   protected $action;
   protected $callback;
 
+  //Recommender settings
+  protected $access_token;
+  protected $recommender;
+  protected $like;
+
 
   /* Implementation of ITingClientRequestCache */
 
@@ -112,6 +117,30 @@ class OpenAdhlRequest extends TingClientRequest Implements ITingClientRequestCac
 
   public function getOutputType() {
     return $this->outputType;
+  }
+
+  public function setAccess_token($value = NULL) {
+    $this->access_token = $value;
+  }
+
+  public function getAccess_token() {
+    return $this->access_token;
+  }
+
+  public function setRecommender($value = NULL) {
+    $this->recommender = $value;
+  }
+
+  public function getRecommender() {
+    return $this->recommender;
+  }
+
+  public function setLike($value = NULL) {
+    $this->like = $value;
+  }
+
+  public function getLike() {
+    return $this->like;
   }
 
   // empty;
