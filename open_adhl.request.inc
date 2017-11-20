@@ -47,6 +47,13 @@ class OpenAdhlRequest extends TingClientRequest Implements ITingClientRequestCac
     }
   }
 
+  public function checkResponse($response){
+    // do NOT cache if result is empty
+    if(empty($response->adhlResponse->pid)){
+      return FALSE;
+    }
+  }
+
   /** \brief ITingClientRequestCache::cacheEnable; Check if cache is enabled
    *
    * @return value of variable (drupal_get)
