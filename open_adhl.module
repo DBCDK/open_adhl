@@ -64,11 +64,54 @@ function open_adhl_topTenRequest($numRecords) {
  * @return array
  */
 function open_adhl_adhlRequest($pid, $numRecords) {
+  /*
   $param = array(
     'id' => array( 'pid' => $pid),
     'numRecords' => $numRecords,
   );
   return open_adhl_request('adhl', $param);
+  */
+  
+  /* Demo recommender call */
+  $url = 'http://recomole.mcp1-proxy.dbc.dk/recomole/loan-cosim';
+  $vars = array(
+    "like" => $pid,
+    "maxresults" => $numRecords,
+    "creatormax" => 2,
+  );
+  $data_string = json_encode($vars);
+  
+  $headers = array(
+    'Accept: Application/json',
+    'Content-Type: Application/json',
+    'Content-Length: ' . strlen($data_string)
+  );
+
+  $curl = new MicroCURL();
+  $curl->set_url($url);
+  $curl->set_option(CURLOPT_CUSTOMREQUEST, 'POST');
+  $curl->set_option(CURLOPT_POSTFIELDS, $data_string);
+  $curl->set_option(CURLOPT_RETURNTRANSFER, TRUE);
+  $curl->set_option(CURLOPT_HTTPHEADER, $headers);
+  
+  $result = json_decode($curl->get());
+  $options = $curl->get_option();
+  $status = $curl->get_status();
+  $error = $curl->has_error();
+  $curl->close();
+
+  if ($status['http_code'] != '200' || !is_object($result)) {
+    $error_msg = ($error) ? 'cURL error: ' . $error : 'Response: "' . $result->value . '"';
+    watchdog('Recomole', $error_msg . "\n" . print_r($options, 1), array(), WATCHDOG_ERROR);
+    return array();
+  }
+
+  $pids = array();
+  foreach ($result->response as $recommendation) {
+    $pids[] = $recommendation->pid;
+  }
+  return $pids;
+  
 }
 
 /** Generic request function to call adhl webservice
