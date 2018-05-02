@@ -11,26 +11,26 @@
  * @param $form_state
  */
 function open_adhl_form_ting_client_admin_webservices_settings_alter(&$form, &$form_state) {
-  $form['adhl'] = array(
+  $form['OpenAdhlRequest'] = array(
     '#type' => 'fieldset',
     '#title' => 'ADHL settings',
     '#description' => t('The ADHL service is used to get recommendations based on other loans'),
     '#collapsible' => TRUE,
     '#tree' => FALSE,
   );
-  $form['adhl']['ting_recommendation_url'] = array(
+  $form['OpenAdhlRequest']['OpenAdhlRequest_url'] = array(
     '#type' => 'textfield',
     '#title' => t('Recommendation service URL'),
     '#description' => t('URL to Open ADHL webservice (Andre der har lånt...) , e.g. http://openadhl.addi.dk/3.0/'),
     '#required' => TRUE,
-    '#default_value' => variable_get('ting_recommendation_url', ''),
+    '#default_value' => variable_get('OpenAdhlRequest_url', ''),
   );
-  $form['adhl']['ting_recommendation_xsd'] = array(
+  $form['OpenAdhlRequest']['OpenAdhlRequest_xsd'] = array(
     '#type' => 'textfield',
     '#title' => t('Recommendation service XSD URL'),
     '#description' => t('URL to XSD to Open ADHL webservice (Andre der har lånt...) , e.g. http://openadhl.addi.dk/3.0/adhl.xsd'),
     '#required' => TRUE,
-    '#default_value' => variable_get('ting_recommendation_xsd', ''),
+    '#default_value' => variable_get('OpenAdhlRequest_xsd', ''),
   );
 }
 
@@ -39,9 +39,9 @@ function open_adhl_form_ting_client_admin_webservices_settings_alter(&$form, &$f
  * */
 function open_adhl_ting_client_webservice() {
   $ret = array();
-  $ret['adhl']['class'] = 'OpenAdhlRequest';
-  $ret['adhl']['url'] = 'ting_recommendation_url';
-  $ret['adhl']['xsd_url'] = 'ting_recommendation_xsd';
+  $ret['OpenAdhlRequest']['class'] = 'OpenAdhlRequest';
+  $ret['OpenAdhlRequest']['url'] = 'OpenAdhlRequest_url';
+  $ret['OpenAdhlRequest']['xsd_url'] = 'OpenAdhlRequest_xsd';
   return $ret;
 }
 
